@@ -114,7 +114,7 @@ const getAllProperties = function(options, limit = 10) {
   FROM properties
   JOIN property_reviews ON properties.id = property_id
   WHERE 1 = 1 `;
-  
+  // using WHERE so the next statements will use AND, rather than multiple if else statements
   // 3
   if (options.city) {
     queryParams.push(`%${options.city}%`);
@@ -123,26 +123,15 @@ const getAllProperties = function(options, limit = 10) {
   if (options.minimum_price_per_night) {
     queryParams.push(`${options.minimum_price_per_night * 100}`);
     queryString += `AND cost_per_night >= $${queryParams.length} `;
-  // } else if (options.minimum_price_per_night) {
-  //   queryParams.push(`${options.minimum_price_per_night * 100}`);
-  //   queryString += `AND cost_per_night >= $${queryParams.length} `
   }
   if (options.maximum_price_per_night) {
     queryParams.push(`${options.maximum_price_per_night * 100}`);
     queryString += `AND cost_per_night <= $${queryParams.length} `;
-  // } else if (options.minimum_price_per_night) {
-  //   queryParams.push(`${options.maximum_price_per_night * 100}`);
-  //   queryString += `AND cost_per_night <= $${queryParams.length} `
   }
   if (options.owner_id) {
     queryParams.push(`${options.owner_id}`);
     queryString += `AND owner_id = $${queryParams.length} `;
    } 
-   //else if (options.owner_id) {
-  //   queryParams.push(`${options.owner_id}`);
-  //   queryString += `AND owner_id = $${queryParams.length} `
-  // }
-  
   
   // 4
   
@@ -158,8 +147,7 @@ const getAllProperties = function(options, limit = 10) {
   LIMIT $${queryParams.length};
   `;
   
-  // 5
-  console.log(queryString, queryParams);
+  // 5 use this to debug console.log(queryString, queryParams);
   
   // 6
   return pool.query(queryString, queryParams)
@@ -167,7 +155,6 @@ const getAllProperties = function(options, limit = 10) {
     return(res.rows);
   })
   .catch((err) => {
-    console.log(err)
     return(err.message);
     });
   };
@@ -182,7 +169,8 @@ exports.getAllProperties = getAllProperties;
  */
 const addProperty = function(property) {
   return pool
-  .query(`INSERT INTO users (name, email, password) VALUES($1, $2, $3) RETURNING *`, [user.name, user.email, user.password])
+  .query(`INSERT INTO properties (owner_id, title, description, thumbnail_photo_url, cover_photo_url, cost_per_night, street, city, province, post_code, country, parking_spaces, number_of_bathrooms, number_of_bedrooms) VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14) RETURNING *`, 
+  [property.owner_id, property.title, property.description, property.thumbnail_photo_url, property.cover_photo_url, property.cost_per_night, property.street, property.city, property.province, property.post_code, property.country, property.parking_spaces, property.number_of_bathrooms, property.number_of_bedrooms])
   .then((result) => {
     return result.rows[0];
   })
@@ -191,3 +179,4 @@ const addProperty = function(property) {
   });
 };
 exports.addProperty = addProperty;
+//8905, Croissant Rouyn, Brossard,  J4X 2T5
