@@ -28,18 +28,6 @@ const getUserWithEmail = function(email) {
   });
 };
 
-// $2a$10$FB/BOAVhpuLvpOREQVmvmezD4ED/.JBIDRh70tGevYzYzQgFId2u. 
-//   let user;
-//   for (const userId in users) {
-//     user = users[userId];
-//     if (user.email.toLowerCase() === email.toLowerCase()) {
-//       break;
-//     } else {
-//       user = null;
-//     }
-//   }
-//   return Promise.resolve(user);
-// }
 exports.getUserWithEmail = getUserWithEmail;
 
 /**
@@ -58,9 +46,6 @@ const getUserWithId = function(id) {
   });
 };
 
-
-//   return Promise.resolve(users[id]);
-// }
 exports.getUserWithId = getUserWithId;
 
 
@@ -70,7 +55,6 @@ exports.getUserWithId = getUserWithId;
  * @return {Promise<{}>} A promise to the user.
  */
 const addUser =  function(user) {
-  console.log(user);
   return pool
   .query(`INSERT INTO users (name, email, password) VALUES($1, $2, $3) RETURNING *`, [user.name, user.email, user.password])
   .then((result) => {
@@ -81,13 +65,6 @@ const addUser =  function(user) {
   });
 };
 
-
-
-  //   const userId = Object.keys(users).length + 1;
-//   user.id = userId;
-//   users[userId] = user;
-//   return Promise.resolve(user);
-// }
 exports.addUser = addUser;
 
 /// Reservations
@@ -98,8 +75,27 @@ exports.addUser = addUser;
  * @return {Promise<[{}]>} A promise to the reservations.
  */
 const getAllReservations = function(guest_id, limit = 10) {
-  return getAllProperties(null, 2);
-}
+  return pool
+  .query(`
+  SELECT properties.*, reservations.*, avg(rating) as average_rating
+  FROM reservations
+  JOIN properties ON reservations.property_id = properties.id
+  JOIN property_reviews ON properties.id = property_reviews.property_id
+  WHERE reservations.guest_id = $1
+  AND reservations.end_date < now()::date
+  GROUP BY properties.id, reservations.id
+  ORDER BY reservations.start_date
+  LIMIT $2`, [guest_id, limit])
+.then((result) => {
+  return result.rows;
+})
+.catch((err) => {
+  return null;
+});
+};
+
+  //   return getAllProperties(null, 2);
+// }
 exports.getAllReservations = getAllReservations;
 
 /// Properties
